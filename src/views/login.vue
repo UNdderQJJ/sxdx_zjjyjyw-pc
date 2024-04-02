@@ -1,7 +1,9 @@
 <template>
   <div class="login">
+    <div class="leftImg">
+      <img src="../assets/images/login-left.png" class="login-left" />
+    </div>
     <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form">
-      <h3 class="title">若依后台管理系统</h3>
       <el-form-item prop="username">
         <el-input
           v-model="loginForm.username"
@@ -156,6 +158,16 @@ export default {
 </script>
 
 <style rel="stylesheet/scss" lang="scss">
+.leftImg{
+  width: 400px;
+  height: 305px;
+}
+.login-left{
+  width: 100%;
+  height:100%;
+object-fit: cover;
+  border-radius: 6px 0 0 6px;
+}
 .login {
   display: flex;
   justify-content: center;
@@ -171,10 +183,12 @@ export default {
 }
 
 .login-form {
-  border-radius: 6px;
+  //border-radius: 6px;
+  border-radius: 0 6px 6px 0;
   background: #ffffff;
   width: 400px;
-  padding: 25px 25px 5px 25px;
+  height: 305px;
+  padding: 48px 20px;
   .el-input {
     height: 38px;
     input {
