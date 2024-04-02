@@ -91,6 +91,9 @@
       <el-table-column label="经度" align="center" prop="longitude" />
       <el-table-column label="纬度" align="center" prop="latitude" />
       <el-table-column label="图片" align="center" prop="pic" />
+      <el-table-column label="光路编号" align="center" prop="pathNum" />
+      <el-table-column label="端口编号" align="center" prop="portNum" />
+      <el-table-column label="设备信息" align="center" prop="deviceInfo" />
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="创建时间" align="center" prop="createTime" width="180">
         <template slot-scope="scope">
@@ -116,7 +119,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -155,6 +158,15 @@
         </el-form-item>
         <el-form-item label="删除标志" prop="delFlag">
           <el-input v-model="form.delFlag" placeholder="请输入删除标志" />
+        </el-form-item>
+        <el-form-item label="光路编号" prop="pathNum">
+          <el-input v-model="form.pathNum" placeholder="请输入光路编号" />
+        </el-form-item>
+        <el-form-item label="端口编号" prop="portNum">
+          <el-input v-model="form.portNum" placeholder="请输入端口编号" />
+        </el-form-item>
+        <el-form-item label="设备信息" prop="deviceInfo">
+          <el-input v-model="form.deviceInfo" placeholder="请输入设备信息" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -244,7 +256,10 @@ export default {
         updateTime: null,
         updateBy: null,
         createTime: null,
-        createBy: null
+        createBy: null,
+        pathNum: null,
+        portNum: null,
+        deviceInfo: null
       };
       this.resetForm("form");
     },
