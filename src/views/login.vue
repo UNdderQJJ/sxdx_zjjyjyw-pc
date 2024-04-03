@@ -91,7 +91,7 @@ export default {
       },
       loading: false,
       // 验证码开关
-      captchaEnabled: false,
+      captchaEnabled: true,
       // 注册开关
       register: false,
       redirect: undefined
@@ -160,7 +160,7 @@ export default {
 <style rel="stylesheet/scss" lang="scss">
 .leftImg{
   width: 400px;
-  height: 305px;
+  height: 350px;
 }
 .login-left{
   width: 100%;
@@ -187,7 +187,7 @@ object-fit: cover;
   border-radius: 0 6px 6px 0;
   background: #ffffff;
   width: 400px;
-  height: 305px;
+  height: 350px;
   padding: 48px 20px;
   .el-input {
     height: 38px;
