@@ -58,3 +58,10 @@ export function getCodeImg() {
     timeout: 20000
   })
 }
+// 加密
+export function getPublicKey() {
+  return request({
+    url: '/getPublicKey',
+    method: 'get'
+  })
+}
