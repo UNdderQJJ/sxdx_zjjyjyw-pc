@@ -65,6 +65,14 @@
           />
         </el-select>
       </el-form-item>
+      <el-form-item label="支局责任人" prop="responsibleUser">
+        <el-input
+          v-model="queryParams.responsibleUser"
+          placeholder="请输入支局责任人"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="创建时间" prop="createTime">
         <el-date-picker clearable
           v-model="queryParams.createTime"
@@ -127,9 +135,9 @@
 
     <el-table v-loading="loading" :data="infoList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
+      <el-table-column label="序号" type="index" />
       <el-table-column label="工单id" align="center" prop="orderId" />
       <el-table-column label="学校报修人" align="center" prop="reportor" />
-      <el-table-column label="学校id" align="center" prop="schoolId" />
       <el-table-column label="学校名称" align="center" prop="schoolName" />
       <el-table-column label="维修来源" align="center" prop="source">
         <template slot-scope="scope">
@@ -141,8 +149,6 @@
           <dict-tag :options="dict.type.zjjyjyw_warranty" :value="scope.row.type"/>
         </template>
       </el-table-column>
-      <el-table-column label="光路编号" align="center" prop="pathNum" />
-      <el-table-column label="端口编号" align="center" prop="portNum" />
       <el-table-column label="紧急程度" align="center" prop="level">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.zjjyjyw_level" :value="scope.row.level"/>
@@ -151,14 +157,6 @@
       <el-table-column label="状态" align="center" prop="status">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.zjjyjyw_status" :value="scope.row.status"/>
-        </template>
-      </el-table-column>
-      <el-table-column label="设备信息" align="center" prop="deviceInfo" />
-      <el-table-column label="故障描述" align="center" prop="faultDesc" />
-      <el-table-column label="备注" align="center" prop="remark" />
-      <el-table-column label="图片" align="center" prop="pic" width="100">
-        <template slot-scope="scope">
-          <image-preview :src="scope.row.pic" :width="50" :height="50"/>
         </template>
       </el-table-column>
       <el-table-column label="支局责任人" align="center" prop="responsibleUser" />
@@ -173,9 +171,63 @@
             size="mini"
             type="text"
             icon="el-icon-edit"
-            @click="handleUpdate(scope.row)"
+            @click="handleUpdate(scope.row,'edit')"
             v-hasPermi="['admin:info:edit']"
           >修改</el-button>
+          <el-button
+            v-if="scope.row.status=='1'"
+            size="mini"
+            type="text"
+            icon="el-icon-edit"
+            @click="handleUpdate(scope.row,'down')"
+            v-hasPermi="['admin:info:edit']"
+          >派单</el-button>
+          <el-button
+            v-if="scope.row.status=='2'"
+            size="mini"
+            type="text"
+            icon="el-icon-edit"
+            @click="handleUpdate(scope.row,'receive')"
+            v-hasPermi="['admin:info:edit']"
+          >接单</el-button>
+          <el-button
+            v-if="scope.row.status=='3'"
+            size="mini"
+            type="text"
+            icon="el-icon-edit"
+            @click="handleUpdate(scope.row,'done')"
+            v-hasPermi="['admin:info:edit']"
+          >维修</el-button>
+          <el-button
+          v-if="scope.row.status=='4'"
+            size="mini"
+            type="text"
+            icon="el-icon-edit"
+            @click="handleUpdate(scope.row,'audit')"
+            v-hasPermi="['admin:info:edit']"
+          >审核</el-button>
+          <el-button
+            v-if="scope.row.status=='5'"
+            size="mini"
+            type="text"
+            icon="el-icon-edit"
+            @click="handleUpdate(scope.row,'close')"
+            v-hasPermi="['admin:info:edit']"
+          >关闭</el-button>
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-edit"
+            @click="handleUpdate(scope.row,'cancel')"
+            v-hasPermi="['admin:info:edit']"
+          >取消</el-button>
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-edit"
+            @click="handleUpdate(scope.row,'back')"
+            v-hasPermi="['admin:info:edit']"
+          >退回</el-button>
           <el-button
             size="mini"
             type="text"
@@ -186,39 +238,23 @@
         </template>
       </el-table-column>
     </el-table>
-
+    
     <pagination
       v-show="total>0"
       :total="total"
       :page.sync="queryParams.pageNum"
       :limit.sync="queryParams.pageSize"
       @pagination="getList"
-    />
+      />
 
-    <!-- 添加或修改工单记录对话框 -->
+    <!-- 添加或修改工单报表对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="工单ID" prop="orderId">
-          <el-input v-model="form.orderId" placeholder="请输入工单ID" />
-        </el-form-item>
         <el-form-item label="学校报修人" prop="reportor">
           <el-input v-model="form.reportor" placeholder="请输入学校报修人" />
         </el-form-item>
-        <el-form-item label="学校id" prop="schoolId">
-          <el-input v-model="form.schoolId" placeholder="请输入学校id" />
-        </el-form-item>
         <el-form-item label="学校名称" prop="schoolName">
           <el-input v-model="form.schoolName" placeholder="请输入学校名称" />
-        </el-form-item>
-        <el-form-item label="维修来源" prop="source">
-          <el-select v-model="form.source" placeholder="请选择维修来源">
-            <el-option
-              v-for="dict in dict.type.zjjyjyw_repair"
-              :key="dict.value"
-              :label="dict.label"
-              :value="parseInt(dict.value)"
-            ></el-option>
-          </el-select>
         </el-form-item>
         <el-form-item label="报修类型" prop="type">
           <el-select v-model="form.type" placeholder="请选择报修类型">
@@ -243,16 +279,6 @@
               :key="dict.value"
               :label="dict.label"
               :value="parseInt(dict.value)"
-            ></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-select v-model="form.status" placeholder="请选择状态">
-            <el-option
-              v-for="dict in dict.type.zjjyjyw_status"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -300,7 +326,7 @@ export default {
       showSearch: true,
       // 总条数
       total: 0,
-      // 工单记录表格数据
+      // 工单报表表格数据
       infoList: [],
       // 弹出层标题
       title: "",
@@ -317,6 +343,7 @@ export default {
         type: null,
         level: null,
         status: null,
+        responsibleUser: null,
         createTime: null,
       },
       // 表单参数
@@ -335,11 +362,20 @@ export default {
         type: [
           { required: true, message: "报修类型不能为空", trigger: "change" }
         ],
+        pathNum: [
+          { required: true, message: "光路编号不能为空", trigger: "blur" }
+        ],
+        portNum: [
+          { required: true, message: "端口编号不能为空", trigger: "blur" }
+        ],
         level: [
           { required: true, message: "紧急程度不能为空", trigger: "change" }
         ],
-        status: [
-          { required: true, message: "状态不能为空", trigger: "change" }
+        deviceInfo: [
+          { required: true, message: "设备信息不能为空", trigger: "blur" }
+        ],
+        faultDesc: [
+          { required: true, message: "故障描述不能为空", trigger: "blur" }
         ],
         responsibleUser: [
           { required: true, message: "支局责任人不能为空", trigger: "blur" }
@@ -351,7 +387,7 @@ export default {
     this.getList();
   },
   methods: {
-    /** 查询工单记录列表 */
+    /** 查询工单报表列表 */
     getList() {
       this.loading = true;
       listInfo(this.queryParams).then(response => {
@@ -411,16 +447,25 @@ export default {
     handleAdd() {
       this.reset();
       this.open = true;
-      this.title = "添加工单记录";
+      this.title = "添加工单报表";
     },
     /** 修改按钮操作 */
-    handleUpdate(row) {
+    handleUpdate(row,method) {
       this.reset();
       const orderId = row.orderId || this.ids
       getInfo(orderId).then(response => {
         this.form = response.data;
         this.open = true;
-        this.title = "修改工单记录";
+        if(method=='edit'){
+          this.title = "修改工单报表";
+        }else if(method=='receive'){
+          this.title = "接单";
+        }else if(method=='done'){
+          this.title = "维修";
+        }else if(method=='audit'){
+          this.title = "审核";
+        }
+        
       });
     },
     /** 提交按钮 */
@@ -446,7 +491,7 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const orderIds = row.orderId || this.ids;
-      this.$modal.confirm('是否确认删除工单记录编号为"' + orderIds + '"的数据项？').then(function() {
+      this.$modal.confirm('是否确认删除工单报表编号为"' + orderIds + '"的数据项？').then(function() {
         return delInfo(orderIds);
       }).then(() => {
         this.getList();
