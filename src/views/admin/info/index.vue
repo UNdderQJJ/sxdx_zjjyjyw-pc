@@ -170,6 +170,13 @@
           <el-button
             size="mini"
             type="text"
+            icon="el-icon-view"
+            @click="handleView(scope.row)"
+            v-hasPermi="['admin:info:query']"
+          >查看</el-button>
+          <el-button
+            size="mini"
+            type="text"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row,'edit')"
             v-hasPermi="['admin:info:edit']"
@@ -178,7 +185,7 @@
             v-if="scope.row.status=='1'"
             size="mini"
             type="text"
-            icon="el-icon-edit"
+            icon="el-icon-bottom"
             @click="handleUpdate(scope.row,'down')"
             v-hasPermi="['admin:info:edit']"
           >派单</el-button>
@@ -186,7 +193,7 @@
             v-if="scope.row.status=='2'"
             size="mini"
             type="text"
-            icon="el-icon-edit"
+            icon="el-icon-circle-check"
             @click="handleUpdate(scope.row,'receive')"
             v-hasPermi="['admin:info:edit']"
           >接单</el-button>
@@ -194,7 +201,7 @@
             v-if="scope.row.status=='3'"
             size="mini"
             type="text"
-            icon="el-icon-edit"
+            icon="el-icon-suitcase-1"
             @click="handleUpdate(scope.row,'done')"
             v-hasPermi="['admin:info:edit']"
           >维修</el-button>
@@ -202,7 +209,7 @@
           v-if="scope.row.status=='4'"
             size="mini"
             type="text"
-            icon="el-icon-edit"
+            icon="el-icon-thumb"
             @click="handleUpdate(scope.row,'audit')"
             v-hasPermi="['admin:info:edit']"
           >审核</el-button>
@@ -210,21 +217,21 @@
             v-if="scope.row.status=='5'"
             size="mini"
             type="text"
-            icon="el-icon-edit"
+            icon="el-icon-circle-close"
             @click="handleUpdate(scope.row,'close')"
             v-hasPermi="['admin:info:edit']"
           >关闭</el-button>
           <el-button
             size="mini"
             type="text"
-            icon="el-icon-edit"
+            icon="el-icon-remove"
             @click="handleUpdate(scope.row,'cancel')"
             v-hasPermi="['admin:info:edit']"
           >取消</el-button>
           <el-button
             size="mini"
             type="text"
-            icon="el-icon-edit"
+            icon="el-icon-refresh-left"
             @click="handleUpdate(scope.row,'back')"
             v-hasPermi="['admin:info:edit']"
           >退回</el-button>
@@ -249,12 +256,12 @@
 
     <!-- 添加或修改工单报表对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="学校报修人" prop="reportor">
-          <el-input v-model="form.reportor" placeholder="请输入学校报修人" />
+      <el-form v-if="method=='edit'" ref="form" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="学校报修人">
+          <el-input v-model="form.reportorName" placeholder="请输入学校报修人" :disabled="true"/>
         </el-form-item>
         <el-form-item label="学校名称" prop="schoolName">
-          <el-input v-model="form.schoolName" placeholder="请输入学校名称" />
+          <el-input v-model="form.schoolName" placeholder="请输入学校名称" :disabled="true"/>
         </el-form-item>
         <el-form-item label="报修类型" prop="type">
           <el-select v-model="form.type" placeholder="请选择报修类型">
@@ -267,10 +274,10 @@
           </el-select>
         </el-form-item>
         <el-form-item label="光路编号" prop="pathNum">
-          <el-input v-model="form.pathNum" placeholder="请输入光路编号" />
+          <el-input v-model="form.pathNum" placeholder="请输入光路编号" :disabled="true"/>
         </el-form-item>
         <el-form-item label="端口编号" prop="portNum">
-          <el-input v-model="form.portNum" placeholder="请输入端口编号" />
+          <el-input v-model="form.portNum" placeholder="请输入端口编号" :disabled="true"/>
         </el-form-item>
         <el-form-item label="紧急程度" prop="level">
           <el-select v-model="form.level" placeholder="请选择紧急程度">
@@ -283,7 +290,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="设备信息" prop="deviceInfo">
-          <el-input v-model="form.deviceInfo" placeholder="请输入设备信息" />
+          <el-input v-model="form.deviceInfo" placeholder="请输入设备信息" :disabled="true"/>
         </el-form-item>
         <el-form-item label="故障描述" prop="faultDesc">
           <el-input v-model="form.faultDesc" placeholder="请输入故障描述" />
@@ -294,8 +301,15 @@
         <el-form-item label="图片" prop="pic">
           <image-upload v-model="form.pic"/>
         </el-form-item>
-        <el-form-item label="支局责任人" prop="responsibleUser">
-          <el-input v-model="form.responsibleUser" placeholder="请输入支局责任人" />
+        <el-form-item label="支局责任人">
+          <el-input v-model="form.responsibleUserName" placeholder="请输入支局责任人" :disabled="true"/>
+        </el-form-item>
+      </el-form>
+      <el-form v-else ref="form" :model="form" :rules="rules" label-width="80px">
+        <div v-if="method=='receive'">确认接单？</div>
+        <div v-if="method=='close'">确认关闭？</div>
+        <el-form-item v-if="method!='receive' && method!='close'" label="详情" prop="content">
+          <el-input v-model="form.content" placeholder="请输入详情" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -307,7 +321,7 @@
 </template>
 
 <script>
-import { listInfo, getInfo, delInfo, addInfo, updateInfo } from "@/api/admin/info";
+import { listInfo, getInfo, delInfo, addInfo, updateInfo, orderFlow, getUserInfo } from "@/api/admin/info";
 
 export default {
   name: "Info",
@@ -332,6 +346,8 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 编辑类型
+      method: "edit",
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -423,7 +439,9 @@ export default {
         createBy: null,
         createTime: null,
         updateBy: null,
-        updateTime: null
+        updateTime: null,
+        responsibleUserName: null,
+        reportorName: null
       };
       this.resetForm("form");
     },
@@ -448,36 +466,72 @@ export default {
       this.reset();
       this.open = true;
       this.title = "添加工单报表";
+      //查询登录用户相关信息，填入表单
+      getUserInfo(15305753305).then(response => {
+        var userInfo = response.data[0];
+        var initForm = {}
+        console.log("=======userinfo" , userInfo);
+        initForm.reportor = userInfo.reportor;
+        initForm.responsibleUser = userInfo.responsible_user;
+        initForm.schoolId = userInfo.dept_id;
+        initForm.schoolName = userInfo.dept_name;
+        initForm.pathNum = userInfo.path_num;
+        initForm.portNum = userInfo.port_num;
+        initForm.deviceInfo = userInfo.device_info;
+        initForm.reportorName = userInfo.person;
+        initForm.responsibleUserName = userInfo.nick_name;
+        initForm.level=null;
+        initForm.type=null;
+        console.log("==========新增表单form",initForm);
+        this.form = initForm;
+      })
     },
     /** 修改按钮操作 */
     handleUpdate(row,method) {
       this.reset();
       const orderId = row.orderId || this.ids
-      getInfo(orderId).then(response => {
+      this.open = true;
+      this.method = method;
+      if(method=='edit'){
+        getInfo(orderId).then(response => {
         this.form = response.data;
-        this.open = true;
-        if(method=='edit'){
-          this.title = "修改工单报表";
-        }else if(method=='receive'){
+        this.title = "修改工单报表";
+        })
+      } else {
+        let water = {}
+        water.orderId = row.orderId;
+        water.method = method;
+        this.form = water;
+        if(method=='receive'){
           this.title = "接单";
-        }else if(method=='done'){
+        } else if(method=='done'){
           this.title = "维修";
-        }else if(method=='audit'){
+        } else if(method=='audit'){
           this.title = "审核";
+        } else if(method=='close'){
+          this.title = "关闭";
         }
-        
-      });
+      }
     },
     /** 提交按钮 */
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
-          if (this.form.orderId != null) {
-            updateInfo(this.form).then(response => {
+          if (this.form.orderId != null ) {
+            if(this.method=='edit'){
+              updateInfo(this.form).then(response => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
-            });
+              });
+            } else {
+              orderFlow(this.form).then(response => {
+                this.$modal.msgSuccess("操作成功");
+                this.open = false;
+                this.getList();
+              });
+            }
+            
           } else {
             addInfo(this.form).then(response => {
               this.$modal.msgSuccess("新增成功");
