@@ -137,7 +137,7 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="序号" type="index" />
       <el-table-column label="工单id" align="center" prop="orderId" />
-      <el-table-column label="学校报修人" align="center" prop="reportor" />
+      <el-table-column label="学校报修人" align="center" prop="reportorName" />
       <el-table-column label="学校名称" align="center" prop="schoolName" />
       <el-table-column label="维修来源" align="center" prop="source">
         <template slot-scope="scope">
@@ -159,7 +159,8 @@
           <dict-tag :options="dict.type.zjjyjyw_status" :value="scope.row.status"/>
         </template>
       </el-table-column>
-      <el-table-column label="支局责任人" align="center" prop="responsibleUser" />
+      <el-table-column label="支局责任人" align="center" prop="responsibleUserName" />
+      <el-table-column label="维修人员" align="center" prop="maintenanceUserName" />
       <el-table-column label="创建时间" align="center" prop="createTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
@@ -306,9 +307,18 @@
         </el-form-item>
       </el-form>
       <el-form v-else ref="form" :model="form" :rules="rules" label-width="80px">
+        <div v-if="method=='down'">
+          <el-form-item label="维修人" prop="candi">
+          <el-select v-model="form.candi" placeholder="请选择维修人" clearable
+            :style="{width: '100%'}">
+            <el-option v-for="(item, index) in maintenanceUsers" :key="index" :label="item.nick_name"
+              :value="item.user_name"></el-option>
+          </el-select>
+        </el-form-item>
+        </div>
         <div v-if="method=='receive'">确认接单？</div>
         <div v-if="method=='close'">确认关闭？</div>
-        <el-form-item v-if="method!='receive' && method!='close'" label="详情" prop="content">
+        <el-form-item v-if="method!='receive' && method!='close' && method!='down'" label="详情" prop="content">
           <el-input v-model="form.content" placeholder="请输入详情" />
         </el-form-item>
       </el-form>
@@ -321,7 +331,8 @@
 </template>
 
 <script>
-import { listInfo, getInfo, delInfo, addInfo, updateInfo, orderFlow, getUserInfo } from "@/api/admin/info";
+import { listInfo, getInfo, delInfo, addInfo, updateInfo, orderFlow, getUserInfo, getMaintenance } from "@/api/admin/info";
+import Cookies from "js-cookie";
 
 export default {
   name: "Info",
@@ -396,7 +407,8 @@ export default {
         responsibleUser: [
           { required: true, message: "支局责任人不能为空", trigger: "blur" }
         ],
-      }
+      },
+      maintenanceUsers:[]
     };
   },
   created() {
@@ -467,10 +479,10 @@ export default {
       this.open = true;
       this.title = "添加工单报表";
       //查询登录用户相关信息，填入表单
-      getUserInfo(15305753305).then(response => {
+      const username = Cookies.get("username");
+      getUserInfo(username).then(response => {
         var userInfo = response.data[0];
         var initForm = {}
-        console.log("=======userinfo" , userInfo);
         initForm.reportor = userInfo.reportor;
         initForm.responsibleUser = userInfo.responsible_user;
         initForm.schoolId = userInfo.dept_id;
@@ -482,7 +494,6 @@ export default {
         initForm.responsibleUserName = userInfo.nick_name;
         initForm.level=null;
         initForm.type=null;
-        console.log("==========新增表单form",initForm);
         this.form = initForm;
       })
     },
@@ -502,7 +513,14 @@ export default {
         water.orderId = row.orderId;
         water.method = method;
         this.form = water;
-        if(method=='receive'){
+        if (method=='down') {
+          //查询维修人员列表
+          const username = Cookies.get("username");
+          getMaintenance(15305755212).then(response => {
+            this.maintenanceUsers = response.data;
+          })
+          this.title = "派单";
+        } else if(method=='receive'){
           this.title = "接单";
         } else if(method=='done'){
           this.title = "维修";
@@ -557,7 +575,8 @@ export default {
       this.download('admin/info/export', {
         ...this.queryParams
       }, `info_${new Date().getTime()}.xlsx`)
-    }
+    },
+
   }
 };
 </script>

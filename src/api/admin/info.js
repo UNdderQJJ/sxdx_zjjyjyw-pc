@@ -58,3 +58,11 @@ export function getUserInfo(userName) {
     method: 'put'
   })
 }
+
+//获取该人员关联信息
+export function getMaintenance(userName) {
+  return request({
+    url: '/zjzyjyw/getMaintenance?userName=' + userName,
+    method: 'get'
+  })
+}
