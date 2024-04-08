@@ -222,20 +222,20 @@
             @click="handleUpdate(scope.row,'close')"
             v-hasPermi="['admin:info:edit']"
           >关闭</el-button>
-          <el-button
+          <!-- <el-button
             size="mini"
             type="text"
             icon="el-icon-remove"
             @click="handleUpdate(scope.row,'cancel')"
             v-hasPermi="['admin:info:edit']"
-          >取消</el-button>
-          <el-button
+          >取消</el-button> -->
+          <!-- <el-button
             size="mini"
             type="text"
             icon="el-icon-refresh-left"
             @click="handleUpdate(scope.row,'back')"
             v-hasPermi="['admin:info:edit']"
-          >退回</el-button>
+          >退回</el-button> -->
           <el-button
             size="mini"
             type="text"
@@ -318,14 +318,139 @@
         </div>
         <div v-if="method=='receive'">确认接单？</div>
         <div v-if="method=='close'">确认关闭？</div>
-        <el-form-item v-if="method!='receive' && method!='close' && method!='down'" label="详情" prop="content">
+        <el-form-item v-if="method=='audit'">
+          <el-radio v-model="auditResult" label="pass">通过</el-radio>
+          <el-radio v-model="auditResult" label="reject">不通过</el-radio>
+        </el-form-item>
+        <el-form-item v-if="(method!='receive' && method!='close' && method!='down' && method !='audit')||auditResult=='reject'" label="详情" prop="content">
           <el-input v-model="form.content" placeholder="请输入详情" />
+        </el-form-item>
+        <el-form-item v-if="method=='done'" label="图片" prop="pic">
+          <image-upload v-model="form.pic"/>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
         <el-button @click="cancel">取 消</el-button>
       </div>
+    </el-dialog>
+
+    <!-- 查看详情 -->
+    <el-dialog :title="'查看工单'" :visible.sync="view" with="1000px" append-to-body>
+      <div>工单信息</div>
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <span class="grid-content bg-purple">工单编号：</span>
+          <span class="grid-content bg-purple">{{ form.orderId }}</span>
+        </el-col>
+        <el-col :span="12">
+          <span class="grid-content bg-purple">学校名称：</span>
+          <span class="grid-content bg-purple">{{ form.schoolName }}</span>
+        </el-col>
+      </el-row>
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <span style="float:left" class="grid-content bg-purple">工单状态：</span>
+          <dict-tag style="float:left" :options="dict.type.zjjyjyw_status" :value="form.status"/>
+        </el-col>
+        <el-col :span="12">
+          <span class="grid-content bg-purple">责任人：</span>
+          <span class="grid-content bg-purple">{{ form.responsibleUserName }}</span>
+        </el-col>
+      </el-row>
+      <el-row :gutter="20">
+        <el-col :span="12">
+            <span style="float:left" class="grid-content bg-purple">维修来源：</span>
+            <dict-tag style="float:left" :options="dict.type.zjjyjyw_repair" :value="form.source"/>
+        </el-col>
+        <el-col :span="12">
+          <span style="float:left" class="grid-content bg-purple">报修类型：</span>
+          <dict-tag style="float:left" :options="dict.type.zjjyjyw_warranty" :value="form.type"/>
+        </el-col>
+      </el-row>
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <span class="grid-content bg-purple">光路编号：</span>
+          <span class="grid-content bg-purple">{{ form.pathNum }}</span>
+        </el-col>
+        <el-col :span="12">
+          <span class="grid-content bg-purple">端口编号：</span>
+          <span class="grid-content bg-purple">{{ form.portNum }}</span>
+        </el-col>
+      </el-row>
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <span style="float:left" class="grid-content bg-purple">紧急程度：</span>
+          <dict-tag style="float:left" :options="dict.type.zjjyjyw_level" :value="form.level"/>
+        </el-col>
+        <el-col :span="12">
+          <span class="grid-content bg-purple">设备信息：</span>
+          <span class="grid-content bg-purple">{{ form.deviceInfo }}</span>
+        </el-col>
+      </el-row>
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <span class="grid-content bg-purple">故障描述：</span>
+          <span class="grid-content bg-purple">{{ form.faultDesc }}</span>
+        </el-col>
+        <el-col :span="12">
+          <span class="grid-content bg-purple">图片：</span>
+          <image-preview :src="form.pic"></image-preview>
+        </el-col>
+      </el-row>
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <span class="grid-content bg-purple">备注：</span>
+          <span class="grid-content bg-purple">{{ form.remark }}</span>
+        </el-col>
+        <el-col :span="12">
+          <span class="grid-content bg-purple">报修人：</span>
+          <span class="grid-content bg-purple">{{ form.reportorName }}</span>
+        </el-col>
+      </el-row>
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <span class="grid-content bg-purple">联系方式：</span>
+          <span class="grid-content bg-purple">{{ form.reportor }}</span>
+        </el-col>
+        <el-col :span="12">
+          <span class="grid-content bg-purple">创建时间：</span>
+          <span class="grid-content bg-purple">{{ form.createTime }}</span>
+        </el-col>
+      </el-row>
+      <div v-if="form.water!=null">
+      <div>维修信息</div>
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <span class="grid-content bg-purple">维修人：</span>
+          <span class="grid-content bg-purple">{{ form.water.maintenanceUserName }}</span>
+        </el-col>
+        <el-col :span="12">
+          <span class="grid-content bg-purple">联系方式：</span>
+          <span class="grid-content bg-purple">{{ form.water.phonenumber }}</span>
+        </el-col>
+      </el-row>
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <span class="grid-content bg-purple">接单时间：</span>
+          <span class="grid-content bg-purple">{{ form.water.dealBegDate }}</span>
+        </el-col>
+        <el-col :span="12">
+          <span class="grid-content bg-purple">维修情况：</span>
+          <span class="grid-content bg-purple">{{ form.water.content }}</span>
+        </el-col>
+      </el-row>
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <span class="grid-content bg-purple">备注：</span>
+          <span class="grid-content bg-purple">{{ form.water.remark }}</span>
+        </el-col>
+        <el-col :span="12">
+          <span class="grid-content bg-purple">完成时间：</span>
+          <span class="grid-content bg-purple">{{ form.water.dealEndDate }}</span>
+        </el-col>
+      </el-row>
+    </div>
     </el-dialog>
   </div>
 </template>
@@ -407,8 +532,13 @@ export default {
         responsibleUser: [
           { required: true, message: "支局责任人不能为空", trigger: "blur" }
         ],
+        content: [
+          { required: true, message: "详情不能为空", trigger: "blur" }
+        ],
       },
-      maintenanceUsers:[]
+      maintenanceUsers: [],
+      auditResult: "pass",
+      view: false
     };
   },
   created() {
@@ -431,6 +561,7 @@ export default {
     },
     // 表单重置
     reset() {
+      this.method="edit";
       this.form = {
         orderId: null,
         reportor: null,
@@ -490,8 +621,8 @@ export default {
         initForm.pathNum = userInfo.path_num;
         initForm.portNum = userInfo.port_num;
         initForm.deviceInfo = userInfo.device_info;
-        initForm.reportorName = userInfo.person;
-        initForm.responsibleUserName = userInfo.nick_name;
+        initForm.reportorName = userInfo.nick_name;
+        initForm.responsibleUserName = userInfo.person;
         initForm.level=null;
         initForm.type=null;
         this.form = initForm;
@@ -499,7 +630,7 @@ export default {
     },
     /** 修改按钮操作 */
     handleUpdate(row,method) {
-      this.reset();
+      // this.reset();
       const orderId = row.orderId || this.ids
       this.open = true;
       this.method = method;
@@ -576,7 +707,24 @@ export default {
         ...this.queryParams
       }, `info_${new Date().getTime()}.xlsx`)
     },
-
+    audit(result){
+      if(result=="pass"){
+        console.log("pass")
+        this.form.content="pass";
+        this.auditResult="pass";
+      } else {
+        console.log("reject")
+        this.auditResult="reject";
+        this.form.content="";
+      }
+    },
+    handleView(row){
+      const orderId = row.orderId || this.ids
+      getInfo(orderId).then(response => {
+        this.form = response.data;
+        this.view = true;
+      })
+    }
   }
 };
 </script>
