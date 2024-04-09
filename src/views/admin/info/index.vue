@@ -88,7 +88,7 @@
     </el-form>
 
     <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
+      <el-col :span="1.5" v-if="isReportor">
         <el-button
           type="primary"
           plain
@@ -183,7 +183,7 @@
             v-hasPermi="['admin:info:edit']"
           >修改</el-button>
           <el-button
-            v-if="scope.row.status=='1'"
+            v-if="scope.row.status=='1' && isResponse"
             size="mini"
             type="text"
             icon="el-icon-bottom"
@@ -191,7 +191,7 @@
             v-hasPermi="['admin:info:edit']"
           >派单</el-button>
           <el-button
-            v-if="scope.row.status=='2'"
+            v-if="scope.row.status=='2' && isMaintenance"
             size="mini"
             type="text"
             icon="el-icon-circle-check"
@@ -199,7 +199,7 @@
             v-hasPermi="['admin:info:edit']"
           >接单</el-button>
           <el-button
-            v-if="scope.row.status=='3'"
+            v-if="scope.row.status=='3' && isMaintenance"
             size="mini"
             type="text"
             icon="el-icon-suitcase-1"
@@ -207,7 +207,7 @@
             v-hasPermi="['admin:info:edit']"
           >维修</el-button>
           <el-button
-          v-if="scope.row.status=='4'"
+          v-if="scope.row.status=='4' && isResponse"
             size="mini"
             type="text"
             icon="el-icon-thumb"
@@ -215,7 +215,7 @@
             v-hasPermi="['admin:info:edit']"
           >审核</el-button>
           <el-button
-            v-if="scope.row.status=='5'"
+            v-if="scope.row.status=='5' && (isReportor || isResponse)"
             size="mini"
             type="text"
             icon="el-icon-circle-close"
@@ -236,7 +236,7 @@
             @click="handleUpdate(scope.row,'back')"
             v-hasPermi="['admin:info:edit']"
           >退回</el-button> -->
-          <el-button
+          <el-button v-if="isReportor || isResponse"
             size="mini"
             type="text"
             icon="el-icon-delete"
@@ -538,10 +538,17 @@ export default {
       },
       maintenanceUsers: [],
       auditResult: "pass",
-      view: false
+      view: false,
+      isReportor: false,
+      isResponse: false,
+      isMaintenance: false
     };
   },
   created() {
+    // 验证用户是否是支局负责人
+    this.isResponse = this.$auth.hasRole("person");
+    this.isReportor = this.$auth.hasRole("report");
+    this.isMaintenance = this.$auth.hasRole("maintenance");
     this.getList();
   },
   methods: {
@@ -709,11 +716,9 @@ export default {
     },
     audit(result){
       if(result=="pass"){
-        console.log("pass")
         this.form.content="pass";
         this.auditResult="pass";
       } else {
-        console.log("reject")
         this.auditResult="reject";
         this.form.content="";
       }
