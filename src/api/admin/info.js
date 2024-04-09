@@ -42,3 +42,27 @@ export function delInfo(orderId) {
     method: 'delete'
   })
 }
+
+export function orderFlow(data) {
+  return request({
+    url: '/admin/info/flow',
+    method: 'post',
+    data: data
+  })
+}
+
+//获取该人员关联信息
+export function getUserInfo(userName) {
+  return request({
+    url: '/zjzyjyw/getInformation?userName=' + userName,
+    method: 'put'
+  })
+}
+
+//获取该人员关联信息
+export function getMaintenance(userName) {
+  return request({
+    url: '/zjzyjyw/getMaintenance?userName=' + userName,
+    method: 'get'
+  })
+}
