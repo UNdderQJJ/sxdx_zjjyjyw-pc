@@ -9,13 +9,16 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="创建时间" prop="createTime">
-        <el-date-picker clearable
-          v-model="queryParams.createTime"
-          type="date"
+      <el-form-item label="创建时间">
+        <el-date-picker
+          v-model="dateRange"
+          style="width: 240px"
           value-format="yyyy-MM-dd"
-          placeholder="请选择创建时间">
-        </el-date-picker>
+          type="daterange"
+          range-separator="-"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        ></el-date-picker>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -38,16 +41,20 @@
     </el-row>
 
     <el-table v-loading="loading" :data="reportList" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="序号" align="center" prop="reportId" />
+<!--      <el-table-column type="selection" width="55" align="center" />-->
+      <el-table-column label="序号" type="index" />
       <el-table-column label="学校" align="center" prop="schoolName" />
-      <el-table-column label="接入方式" align="center" prop="#" />
+      <el-table-column label="接入方式" align="center" prop="access">
+        <template slot-scope="scope">
+          <dict-tag :options="dict.type.zjjyjyw_access" :value="scope.row.access"/>
+        </template>
+      </el-table-column>
       <el-table-column label="责任人" align="center" prop="responsibleUser" />
       <el-table-column label="工单总数" align="center" prop="workNum" />
-      <el-table-column label="待接单" align="center" prop="order" />
-      <el-table-column label="维修中" align="center" prop="repair" />
-      <el-table-column label="已完成" align="center" prop="complete" />
-      <el-table-column label="已取消" align="center" prop="Cancel"/>
+      <el-table-column label="待接单" align="center" prop="待接单" />
+      <el-table-column label="维修中" align="center" prop="维修中" />
+      <el-table-column label="已完成" align="center" prop="已完成" />
+      <el-table-column label="已取消" align="center" prop="已取消"/>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -73,10 +80,11 @@
 </template>
 
 <script>
-import { listReport, getReport, delReport, addReport, updateReport } from "@/api/admin/report";
+import { listReport } from "@/api/admin/report";
 
 export default {
   name: "Report",
+  dicts: ['zjjyjyw_access'],
   data() {
     return {
       // 遮罩层
@@ -97,6 +105,8 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 日期范围
+      dateRange: [],
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -118,7 +128,7 @@ export default {
     /** 查询工单报表列表 */
     getList() {
       this.loading = true;
-      listReport(this.queryParams).then(response => {
+      listReport(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
         this.reportList = response.rows;
         this.total = response.total;
         this.loading = false;
@@ -132,26 +142,19 @@ export default {
     // 表单重置
     reset() {
       this.form = {
-        orderId: null,
-        reportor: null,
         schoolId: null,
         schoolName: null,
-        source: null,
-        type: null,
-        pathNum: null,
-        portNum: null,
-        level: null,
-        status: null,
-        deviceInfo: null,
-        faultDesc: null,
-        remark: null,
-        pic: null,
+        access: null,
         responsibleUser: null,
-        delFlag: null,
-        createBy: null,
-        createTime: null,
-        updateBy: null,
-        updateTime: null
+        responsible: null,
+        workNum: null,
+        待派单: null,
+        待接单: null,
+        维修中 : null,
+        待审核: null,
+        已完成 : null,
+        已取消: null,
+        回退: null
       };
       this.resetForm("form");
     },
@@ -162,6 +165,7 @@ export default {
     },
     /** 重置按钮操作 */
     resetQuery() {
+      this.dateRange = [];
       this.resetForm("queryForm");
       this.handleQuery();
     },

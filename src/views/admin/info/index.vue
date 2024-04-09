@@ -246,7 +246,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -614,15 +614,15 @@ export default {
       getUserInfo(username).then(response => {
         var userInfo = response.data[0];
         var initForm = {}
-        initForm.reportor = userInfo.reportor;
-        initForm.responsibleUser = userInfo.responsible_user;
+        initForm.reportor = userInfo.reportor_mobile;
+        initForm.responsibleUser = userInfo.responsible_mobile;
         initForm.schoolId = userInfo.dept_id;
         initForm.schoolName = userInfo.dept_name;
         initForm.pathNum = userInfo.path_num;
         initForm.portNum = userInfo.port_num;
         initForm.deviceInfo = userInfo.device_info;
-        initForm.reportorName = userInfo.nick_name;
-        initForm.responsibleUserName = userInfo.person;
+        initForm.reportorName = userInfo.reportor;
+        initForm.responsibleUserName = userInfo.responsible;
         initForm.level=null;
         initForm.type=null;
         this.form = initForm;
@@ -680,7 +680,7 @@ export default {
                 this.getList();
               });
             }
-            
+
           } else {
             addInfo(this.form).then(response => {
               this.$modal.msgSuccess("新增成功");

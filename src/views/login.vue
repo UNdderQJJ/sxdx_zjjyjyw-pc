@@ -159,8 +159,8 @@ export default {
 
 <style rel="stylesheet/scss" lang="scss">
 .leftImg{
-  width: 400px;
-  height: 350px;
+  width: 350px;
+  height: 300px;
 }
 .login-left{
   width: 100%;
@@ -186,9 +186,9 @@ object-fit: cover;
   //border-radius: 6px;
   border-radius: 0 6px 6px 0;
   background: #ffffff;
-  width: 400px;
-  height: 350px;
-  padding: 48px 20px;
+  width: 350px;
+  height: 300px;
+  padding: 18px 30px;
   .el-input {
     height: 38px;
     input {
