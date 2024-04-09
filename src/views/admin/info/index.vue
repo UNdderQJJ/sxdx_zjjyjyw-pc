@@ -9,9 +9,9 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="学校报修人" prop="reportor">
+      <el-form-item label="学校报修人" prop="reportorName">
         <el-input
-          v-model="queryParams.reportor"
+          v-model="queryParams.reportorName"
           placeholder="请输入学校报修人"
           clearable
           @keyup.enter.native="handleQuery"
@@ -65,9 +65,9 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="支局责任人" prop="responsibleUser">
+      <el-form-item label="支局责任人" prop="responsibleUserName">
         <el-input
-          v-model="queryParams.responsibleUser"
+          v-model="queryParams.responsibleUserName"
           placeholder="请输入支局责任人"
           clearable
           @keyup.enter.native="handleQuery"
